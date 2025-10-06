@@ -36,3 +36,8 @@ SPEECH_TO_TEXT_TOOL_SCHEMA = {
 DEFAULT_WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
 MAX_AUDIO_LENGTH = int(os.getenv("MAX_AUDIO_LENGTH", "30"))  # seconds
 SUPPORTED_AUDIO_FORMATS = ["wav", "mp3", "m4a", "flac"]
+
+# Silence detection configuration for streaming transcription
+SILENCE_SHORT_DURATION = float(os.getenv("SILENCE_SHORT_DURATION", "0.7"))  # seconds for interim transcription
+SILENCE_LONG_DURATION = float(os.getenv("SILENCE_LONG_DURATION", "1.5"))   # seconds for final transcription
+SILENCE_THRESHOLD = float(os.getenv("SILENCE_THRESHOLD", "0.01"))          # RMS threshold for silence detection

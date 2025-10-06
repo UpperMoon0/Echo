@@ -169,19 +169,20 @@ async def health_check():
 
 @router.websocket("/ws/transcribe")
 async def websocket_transcribe(websocket: WebSocket):
-    """WebSocket endpoint for real-time audio streaming transcription."""
+    """WebSocket endpoint for real-time audio streaming transcription with silence detection."""
     await websocket.accept()
     try:
         while True:
             # Receive audio data as bytes
             data = await websocket.receive_bytes()
             streaming_service.add_audio_chunk(data)
-            
-            # Transcribe the current buffer
-            transcription = streaming_service.transcribe_stream()
-            if transcription:
-                await websocket.send_text(transcription)
-                
+
+            # Check for silence-based transcription events
+            event = streaming_service.check_silence_events()
+            if event:
+                # Send event as JSON with type and text
+                await websocket.send_json(event)
+
     except WebSocketDisconnect:
         print("WebSocket connection closed")
     except Exception as e:
