@@ -2,14 +2,18 @@ from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form, W
 from fastapi.responses import StreamingResponse
 import json
 import base64
-from core.config import SPEECH_TO_TEXT_TOOL_SCHEMA
+from typing import Dict, Optional
+from core.config import SPEECH_TO_TEXT_TOOL_SCHEMA, DEFAULT_WHISPER_MODEL
 from services.speech_service import speech_service
-from services.streaming_service import streaming_service
+from services.streaming_service import streaming_service, StreamingSpeechToTextService
 from datetime import datetime
 import io
 import asyncio
 
 router = APIRouter()
+
+# In-memory dictionary to store streaming service instances for each client
+streaming_sessions: Dict[str, StreamingSpeechToTextService] = {}
 
 async def handle_json_rpc_message(message: dict) -> dict:
     """Handle a single JSON-RPC message for embedded MCP."""

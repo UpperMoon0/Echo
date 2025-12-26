@@ -13,7 +13,8 @@ from core.config import (
 )
 
 class StreamingSpeechToTextService:
-    def __init__(self):
+    def __init__(self, client_id: str = "default"):
+        self.client_id = client_id
         self.model = whisper.load_model(DEFAULT_WHISPER_MODEL)
         self.audio_buffer = np.array([], dtype=np.float32)
         self.sample_rate = 16000  # Whisper expects 16kHz audio
@@ -71,7 +72,8 @@ class StreamingSpeechToTextService:
                 self.last_interim_transcription = interim_text
                 return {
                     'type': 'interim',
-                    'text': interim_text.strip()
+                    'text': interim_text.strip(),
+                    'client_id': self.client_id
                 }
 
         # Check for final transcription (long pause)
@@ -86,7 +88,8 @@ class StreamingSpeechToTextService:
                 self.last_interim_transcription = ""
                 return {
                     'type': 'final',
-                    'text': final_text.strip()
+                    'text': final_text.strip(),
+                    'client_id': self.client_id
                 }
 
         return None
