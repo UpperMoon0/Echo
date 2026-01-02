@@ -36,7 +36,7 @@ def test_transcribe_hello_world():
     with open(audio_file_path, 'rb') as f:
         files = {'file': ('hello_world.mp3', f, 'audio/mp3')}
         response = requests.post(
-            f"{BASE_URL}/transcribe",
+            f"{BASE_URL}/v1/audio/transcriptions",
             files=files,
             data={'language': 'auto', 'model_size': 'base'}
         )
@@ -54,7 +54,7 @@ def test_transcribe_base64():
     base64_audio = "UklGRnoAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoAAAA="
 
     response = requests.post(
-        f"{BASE_URL}/transcribe/base64",
+        f"{BASE_URL}/v1/audio/transcriptions/base64",
         json={"audio_data": base64_audio},
         params={'language': 'auto', 'model_size': 'base'}
     )
@@ -71,7 +71,7 @@ def test_mcp_endpoint():
         "method": "tools/list"
     }
 
-    response = requests.post(f"{BASE_URL}/mcp", json=payload)
+    response = requests.post(f"{BASE_URL}/v1/mcp", json=payload)
     assert response.status_code == 200, f"MCP call failed: {response.text}"
     result = response.json()
     assert "result" in result or "error" in result

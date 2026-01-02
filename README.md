@@ -37,7 +37,7 @@ The service will be available at `http://localhost:8000`.
 
 #### Transcribe Audio File
 ```bash
-curl -X POST "http://localhost:8000/transcribe" \
+curl -X POST "http://localhost:8000/v1/audio/transcriptions" \
   -F "file=@audio.wav" \
   -F "language=en" \
   -F "model_size=base"
@@ -45,7 +45,7 @@ curl -X POST "http://localhost:8000/transcribe" \
 
 #### Transcribe Base64 Audio
 ```bash
-curl -X POST "http://localhost:8000/transcribe/base64" \
+curl -X POST "http://localhost:8000/v1/audio/transcriptions/base64" \
   -H "Content-Type: application/json" \
   -d '{"audio_data": "base64_string", "language": "en"}'
 ```
@@ -63,7 +63,7 @@ Connect to `ws://localhost:8000/ws/transcribe` and send audio chunks as bytes. R
 
 ### MCP Integration
 
-The service exposes a `speech_to_text` tool via the `/mcp` endpoint for JSON-RPC communication with AI assistants.
+The service exposes a `speech_to_text` tool via the `/v1/mcp` endpoint for JSON-RPC communication with AI assistants.
 
 ## Configuration
 

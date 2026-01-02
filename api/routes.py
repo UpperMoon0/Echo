@@ -104,7 +104,7 @@ async def handle_json_rpc_message(message: dict) -> dict:
             }
         }
 
-@router.post("/mcp")
+@router.post("/v1/mcp")
 async def embedded_mcp_endpoint(request: Request):
     """Embedded MCP endpoint that handles JSON-RPC messages over HTTP."""
     try:
@@ -122,7 +122,7 @@ async def embedded_mcp_endpoint(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/transcribe")
+@router.post("/v1/audio/transcriptions")
 async def transcribe_audio(
     file: UploadFile = File(...),
     language: str = Form("auto"),
@@ -143,7 +143,7 @@ async def transcribe_audio(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
-@router.post("/transcribe/base64")
+@router.post("/v1/audio/transcriptions/base64")
 async def transcribe_base64_audio(
     request: Request,
     language: str = Form("auto"),
@@ -231,9 +231,9 @@ async def root():
         "endpoints": {
             "GET /": "API information",
             "GET /health": "Health check",
-            "POST /transcribe": "Transcribe audio file",
-            "POST /transcribe/base64": "Transcribe base64 audio data",
-            "POST /mcp": "Embedded MCP endpoint",
+            "POST /v1/audio/transcriptions": "Transcribe audio file",
+            "POST /v1/audio/transcriptions/base64": "Transcribe base64 audio data",
+            "POST /v1/mcp": "Embedded MCP endpoint",
             "WS /ws/transcribe": "WebSocket for real-time streaming",
             "POST /stream/start": "Start streaming session",
             "POST /stream/chunk": "Add audio chunk to stream",

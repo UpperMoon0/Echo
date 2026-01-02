@@ -5,6 +5,7 @@ sys.path.insert(0, '/app/Echo')
 from fastapi import FastAPI
 import uvicorn
 from api.routes import router
+from utils.service_discovery import ServiceDiscovery
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -32,6 +33,21 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
 app.add_middleware(RequestLoggerMiddleware)
 
 app.include_router(router)
+
+# Service Discovery Global
+sd = None
+
+@app.on_event("startup")
+async def startup_event():
+    global sd
+    port = int(os.getenv("PORT", "8000"))
+    sd = ServiceDiscovery(service_name="echo", port=port, tags=["mcp"])
+    sd.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if sd:
+        sd.deregister()
 
 def main():
     """Start the unified server (REST API + Embedded MCP)."""
