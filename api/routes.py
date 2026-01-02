@@ -9,6 +9,11 @@ from services.streaming_service import streaming_service, StreamingSpeechToTextS
 from datetime import datetime
 import io
 import asyncio
+import logging
+
+# Setup logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("echo-api")
 
 router = APIRouter()
 
@@ -177,9 +182,14 @@ async def websocket_transcribe(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            # Receive audio data as bytes
-            data = await websocket.receive_bytes()
-            streaming_service.add_audio_chunk(data)
+            try:
+                # Receive audio data as bytes with timeout to allow silence checking
+                data = await asyncio.wait_for(websocket.receive_bytes(), timeout=0.1)
+                logger.info(f"DEBUG: Echo received {len(data)} bytes from WebSocket")
+                streaming_service.add_audio_chunk(data)
+            except asyncio.TimeoutError:
+                # No data received, just check for silence events
+                pass
 
             # Check for silence-based transcription events
             event = streaming_service.check_silence_events()
@@ -188,9 +198,9 @@ async def websocket_transcribe(websocket: WebSocket):
                 await websocket.send_json(event)
 
     except WebSocketDisconnect:
-        print("WebSocket connection closed")
+        logger.info("WebSocket connection closed")
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
         await websocket.close(code=1011, reason=str(e))
 
 @router.post("/stream/start")

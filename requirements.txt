@@ -2,7 +2,7 @@ openai-whisper
 torch
 torchaudio
 fastapi
-uvicorn
+uvicorn[standard]
 python-multipart
 python-dotenv
 numpy

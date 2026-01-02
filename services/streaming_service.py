@@ -11,6 +11,10 @@ from core.config import (
     SILENCE_LONG_DURATION,
     SILENCE_THRESHOLD
 )
+import logging
+
+logger = logging.getLogger("echo-streaming")
+logging.basicConfig(level=logging.INFO)
 
 class StreamingSpeechToTextService:
     def __init__(self, client_id: str = "default"):
@@ -34,10 +38,13 @@ class StreamingSpeechToTextService:
         rms = np.sqrt(np.mean(audio_array ** 2)) if len(audio_array) > 0 else 0.0
 
         current_time = time.time()
+        # print(f"DEBUG: Processing chunk size={len(audio_array)}, rms={rms:.4f}")
 
         # Check if this chunk contains audio (above silence threshold)
         if rms > SILENCE_THRESHOLD:
             # Audio detected - reset silence tracking
+            if self.silence_start_time is not None:
+                print(f"DEBUG: Speech detected! (RMS={rms:.4f}). Resetting silence tracking.")
             self.last_audio_time = current_time
             self.silence_start_time = None
             self.final_transcription_sent = False
@@ -45,6 +52,7 @@ class StreamingSpeechToTextService:
             # Silence detected
             if self.silence_start_time is None:
                 self.silence_start_time = current_time
+                print(f"DEBUG: Silence started at {self.silence_start_time}")
 
         # Add to buffer
         self.audio_buffer = np.concatenate([self.audio_buffer, audio_array])
@@ -67,7 +75,9 @@ class StreamingSpeechToTextService:
             len(self.audio_buffer) > 0):
 
             # Transcribe current buffer for interim result
+            logger.info(f"DEBUG: Triggering interim transcription. Buffer size: {len(self.audio_buffer)}")
             interim_text = self._transcribe_current_buffer()
+            logger.info(f"DEBUG: Interim transcription result: '{interim_text}'")
             if interim_text and interim_text != self.last_interim_transcription:
                 self.last_interim_transcription = interim_text
                 return {
@@ -82,7 +92,9 @@ class StreamingSpeechToTextService:
             len(self.audio_buffer) > 0):
 
             # Transcribe and clear buffer for final result
+            logger.info(f"DEBUG: Triggering final transcription. Buffer size: {len(self.audio_buffer)}")
             final_text = self._transcribe_and_clear_buffer()
+            logger.info(f"DEBUG: Final transcription result: '{final_text}'")
             if final_text:
                 self.final_transcription_sent = True
                 self.last_interim_transcription = ""

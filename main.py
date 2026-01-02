@@ -12,6 +12,25 @@ app = FastAPI(
     description="Speech-to-text service with Whisper and MCP support",
     version="1.0.0"
 )
+
+# Add Request Logging Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("echo-request-logger")
+
+class RequestLoggerMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        logger.info(f"Incoming Request: {request.method} {request.url}")
+        logger.info(f"Headers: {request.headers}")
+        response = await call_next(request)
+        logger.info(f"Response Status: {response.status_code}")
+        return response
+
+app.add_middleware(RequestLoggerMiddleware)
+
 app.include_router(router)
 
 def main():
