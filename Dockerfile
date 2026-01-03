@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y \
 # Set the working directory in the container
 WORKDIR /app
 
+# Install heavy dependencies first to leverage Docker layer caching
+# We do this BEFORE copying requirements.txt so changes to requirements don't trigger a torch reinstall
+RUN pip install torch torchaudio openai-whisper
+
 # Copy the dependencies file to the working directory
 COPY requirements.txt .
-
-# Install any needed packages specified in requirements.txt
-# Install heavy dependencies first to leverage Docker layer caching
-RUN pip install torch torchaudio openai-whisper
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
