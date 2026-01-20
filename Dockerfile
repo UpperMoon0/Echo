@@ -5,22 +5,29 @@
 FROM python:3.11-slim
 
 # Install system dependencies for Whisper (ffmpeg)
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+# Use cache mount to speed up apt-get and persist cache between builds
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && \
+    apt-get update && apt-get install -y \
+    ffmpeg
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Install heavy dependencies first to leverage Docker layer caching
 # We do this BEFORE copying requirements.txt so changes to requirements don't trigger a torch reinstall
-RUN pip install torch torchaudio openai-whisper
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install torch torchaudio openai-whisper
 
 # Copy the dependencies file to the working directory
 COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Filter out torch, torchaudio, and openai-whisper as they are already installed
+RUN --mount=type=cache,target=/root/.cache/pip \
+    grep -vE "^torch|^torchaudio|^openai-whisper" requirements.txt > requirements-filtered.txt && \
+    pip install -r requirements-filtered.txt
 
 # Copy the Echo directory content to the working directory
 COPY . /app/Echo
@@ -29,7 +36,7 @@ COPY . /app/Echo
 WORKDIR /app/Echo
 
 # Add current directory to Python path to enable relative imports
-ENV PYTHONPATH=/app/Echo:$PYTHONPATH
+ENV PYTHONPATH=/app/Echo
 
 # Expose the port the app runs on
 EXPOSE 8000
