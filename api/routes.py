@@ -180,6 +180,7 @@ async def health_check():
 async def websocket_transcribe(websocket: WebSocket):
     """WebSocket endpoint for real-time audio streaming transcription with silence detection."""
     await websocket.accept()
+    print("DEBUG: WebSocket connection ACCEPTED")
     try:
         while True:
             try:
